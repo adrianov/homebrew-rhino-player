@@ -13,6 +13,9 @@ class RhinoPlayer < Formula
   depends_on "mpv"
 
   def install
+    # Dev builds use LLD via .cargo/config.toml; Homebrew's clang shim rejects -fuse-ld=lld.
+    rm_r ".cargo" if (buildpath/".cargo").exist?
+
     system "cargo", "install", *std_cargo_args
     man1.install "doc/rhino-player.1"
     (share/"rhino-player/vs").install Dir["data/vs/*.vpy"]

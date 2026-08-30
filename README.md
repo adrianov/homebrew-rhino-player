@@ -1,18 +1,20 @@
-# Adrianov Rhino-player
+# adrianov/rhino-player
 
-## How do I install these formulae?
+Homebrew tap for [Rhino Player](https://github.com/adrianov/rhino-player) — mpv-backed media player with a GTK 4 / libadwaita UI.
 
-`brew install adrianov/rhino-player/<formula>`
+## Install
 
-Or `brew tap adrianov/rhino-player` and then `brew install <formula>`.
+```sh
+brew install adrianov/rhino-player/rhino-player
+```
 
-Or, in a `brew bundle` `Brewfile`:
+Or:
 
-```ruby
-tap "adrianov/rhino-player"
-brew "<formula>"
+```sh
+brew tap adrianov/rhino-player
+brew install rhino-player
 ```
 
 ## Documentation
 
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+`brew help`, `man brew`, or [Homebrew docs](https://docs.brew.sh).

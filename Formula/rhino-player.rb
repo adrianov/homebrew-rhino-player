@@ -48,7 +48,8 @@ class RhinoPlayer < Formula
 
     inreplace "packaging/macos/Info.plist.in", "@VERSION@", version.to_s
     cp "packaging/macos/Info.plist.in", contents/"Info.plist"
-    cp Dir["data/vs/*.vpy"], resources/"share/rhino-player/vs/"
+    # share/.../vs was already install'd (moved) from data/vs — copy from the keg share tree.
+    cp Dir[share/"rhino-player/vs/*.vpy"], resources/"share/rhino-player/vs/"
     cp_r "data/icons/hicolor", resources/"data/icons/"
 
     iconset = buildpath/"AppIcon.iconset"
@@ -107,5 +108,6 @@ class RhinoPlayer < Formula
 
     assert_path_exists prefix/"Rhino Player.app/Contents/Resources/AppIcon.icns"
     assert_path_exists prefix/"Rhino Player.app/Contents/MacOS/rhino-player"
+    assert_path_exists prefix/"Rhino Player.app/Contents/Resources/share/rhino-player/vs/rhino_60_mvtools.vpy"
   end
 end

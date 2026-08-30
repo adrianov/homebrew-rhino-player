@@ -21,18 +21,16 @@ class RhinoPlayer < Formula
 
     man1.install "doc/rhino-player.1"
     (share/"rhino-player/vs").install Dir["data/vs/*.vpy"]
-    # Runtime IconTheme prepend (symbolics + app id when the platform hicolor is empty).
-    (share/"rhino-player/icons").mkpath
-    cp_r "data/icons/hicolor", share/"rhino-player/icons/"
-    # Standard Freedesktop tree (same layout as the .deb) for GTK / shell app icons.
-    (share/"icons/hicolor").mkpath
-    cp_r "data/icons/hicolor/.", share/"icons/hicolor"
     (share/"applications").install "data/applications/ch.rhino.RhinoPlayer.desktop"
     (share/"metainfo").install "data/metainfo/ch.rhino.RhinoPlayer.metainfo.xml"
 
-    return unless OS.mac?
+    # One Freedesktop tree (app PNG + symbolics). Alias for PREFIX runtime prepend.
+    (share/"icons/hicolor").mkpath
+    cp_r "data/icons/hicolor/.", share/"icons/hicolor"
+    (share/"rhino-player").mkpath
+    ln_sf "../icons", share/"rhino-player/icons"
 
-    install_macos_app
+    install_macos_app if OS.mac?
   end
 
   def install_macos_app
@@ -44,7 +42,7 @@ class RhinoPlayer < Formula
     (resources/"share/rhino-player/vs").mkpath
     (resources/"data/icons").mkpath
 
-    # Binary lives inside the bundle so Launch Services / Dock use AppIcon.icns.
+    # Binary inside the bundle so Dock / Launch Services use AppIcon.icns.
     mv bin/"rhino-player", macos/"rhino-player"
     bin.install_symlink macos/"rhino-player"
 
@@ -56,20 +54,27 @@ class RhinoPlayer < Formula
     iconset = buildpath/"AppIcon.iconset"
     iconset.mkpath
     hicon = buildpath/"data/icons/hicolor"
-    cp hicon/"16x16/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_16x16.png"
-    cp hicon/"32x32/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_16x16@2x.png"
-    cp hicon/"32x32/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_32x32.png"
-    cp hicon/"64x64/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_32x32@2x.png"
-    cp hicon/"128x128/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_128x128.png"
-    cp hicon/"256x256/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_128x128@2x.png"
-    cp hicon/"256x256/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_256x256.png"
-    cp hicon/"512x512/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_256x256@2x.png"
-    cp hicon/"512x512/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_512x512.png"
-    cp hicon/"1024x1024/apps/ch.rhino.RhinoPlayer.png", iconset/"icon_512x512@2x.png"
+    {
+      "icon_16x16.png"       => "16x16",
+      "icon_16x16@2x.png"    => "32x32",
+      "icon_32x32.png"       => "32x32",
+      "icon_32x32@2x.png"    => "64x64",
+      "icon_128x128.png"     => "128x128",
+      "icon_128x128@2x.png"  => "256x256",
+      "icon_256x256.png"     => "256x256",
+      "icon_256x256@2x.png"  => "512x512",
+      "icon_512x512.png"     => "512x512",
+      "icon_512x512@2x.png"  => "1024x1024",
+    }.each do |name, size|
+      cp hicon/"#{size}/apps/ch.rhino.RhinoPlayer.png", iconset/name
+    end
     system "iconutil", "-c", "icns", iconset.to_s, "-o", (resources/"AppIcon.icns").to_s
-
-    # Ad-hoc sign so Launch Services binds Info.plist + sealed AppIcon.icns.
     system "codesign", "--force", "--sign", "-", "--timestamp=none", app.to_s
+
+    # Prefer this keg over a leftover dist/ or DMG build for the same bundle id.
+    lsregister = "/System/Library/Frameworks/CoreServices.framework/Frameworks/" \
+                 "LaunchServices.framework/Support/lsregister"
+    system lsregister, "-f", app.to_s if File.executable?(lsregister)
   end
 
   def caveats
@@ -80,8 +85,7 @@ class RhinoPlayer < Formula
     if OS.mac?
       s += <<~EOS
 
-        macOS app bundle (Dock / Launchpad icon):
-          #{opt_prefix}/Rhino\\ Player.app
+        Dock icon: #{opt_prefix}/Rhino\\ Player.app
         Optional: ln -s "#{opt_prefix}/Rhino Player.app" /Applications/
       EOS
     end
@@ -97,6 +101,7 @@ class RhinoPlayer < Formula
     assert_path_exists man1/"rhino-player.1"
     assert_path_exists share/"rhino-player/vs/rhino_60_mvtools.vpy"
     assert_path_exists share/"icons/hicolor/256x256/apps/ch.rhino.RhinoPlayer.png"
+    assert_path_exists share/"rhino-player/icons/hicolor/256x256/apps/ch.rhino.RhinoPlayer.png"
     assert_path_exists share/"applications/ch.rhino.RhinoPlayer.desktop"
     return unless OS.mac?
 
